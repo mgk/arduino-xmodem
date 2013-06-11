@@ -14,6 +14,8 @@ class XModem {
 		int byte;
 		//expected block number
 		unsigned char blockNo;
+		//extended block number, send to dataHandler()
+		unsigned long blockNoExt;
 		//retry counter for NACK
 		int retries;
 		//buffer
@@ -23,7 +25,7 @@ class XModem {
 
 		int  (*recvChar)(int);
 		void (*sendChar)(char);
-		bool (*dataHandler)(int number, char *buffer, int len);
+		bool (*dataHandler)(unsigned long number, char *buffer, int len);
 		unsigned short crc16_ccitt(char *buf, int size);
 		bool dataAvail(int delay);
 		int dataRead(int delay);
@@ -48,7 +50,7 @@ class XModem {
 	
 		XModem(int (*recvChar)(int), void (*sendChar)(char));
 		XModem(int (*recvChar)(int), void (*sendChar)(char), 
-  			        bool (*dataHandler)(int, char*, int));
+  			        bool (*dataHandler)(unsigned long, char*, int));
 		bool receive();
 		bool transmit();
 		

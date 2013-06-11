@@ -26,7 +26,7 @@ XModem::XModem(int (*recvChar)(int msDelay), void (*sendChar)(char sym))
 	
 }
 XModem::XModem(int (*recvChar)(int msDelay), void (*sendChar)(char sym), 
-		bool (*dataHandler)(int number, char *buffer, int len))
+		bool (*dataHandler)(unsigned long number, char *buffer, int len))
 {
 	this->sendChar = sendChar;
 	this->recvChar = recvChar;
@@ -61,9 +61,10 @@ void XModem::dataWrite(char symbol)
 }
 bool XModem::receiveFrameNo()
 {
-	unsigned char num = (unsigned char)this->dataRead(XModem::receiveDelay);
-	unsigned char invnum = (unsigned char)this->
-						dataRead(XModem::receiveDelay);
+	unsigned char num = 
+		(unsigned char)this->dataRead(XModem::receiveDelay);
+	unsigned char invnum = 
+		(unsigned char)this-> dataRead(XModem::receiveDelay);
 	this->repeatedBlock = false;
 	//check for repeated block
 	if (invnum == (255-num) && num == this->blockNo-1) {
@@ -129,6 +130,7 @@ bool XModem::sendNack()
 bool XModem::receiveFrames(transfer_t transfer)
 {
 	this->blockNo = 1;
+	this->blockNoExt = 1;
 	this->retries = 0;
 	while (1) {
 		char cmd = this->dataRead(100);
@@ -165,14 +167,17 @@ bool XModem::receiveFrames(transfer_t transfer)
 				//callback
 				if(this->dataHandler != NULL && 
 				   this->repeatedBlock == false)
-					if(!this->dataHandler(this->blockNo, 
+					if(!this->dataHandler(this->blockNoExt, 
 							  this->buffer, 128)) {
 						return false;
 					}
 				//ack
 				this->dataWrite(XModem::ACK);
 				if(this->repeatedBlock == false)
+				{
 					this->blockNo++;
+					this->blockNoExt++;
+				}
 			   	
 				break;
 			case XModem::EOT:
@@ -253,6 +258,7 @@ unsigned char XModem::generateChkSum(void)
 bool XModem::transmitFrames(transfer_t transfer)
 {
 	this->blockNo = 1;
+	this->blockNoExt = 1;
 	// use this only in unit tetsing
 	//memset(this->buffer, 'A', 128);
 	while(1)
@@ -261,7 +267,8 @@ bool XModem::transmitFrames(transfer_t transfer)
 		if (this->dataHandler != NULL)
 		{
 			if( false == 
-			 this->dataHandler(this->blockNo, this->buffer, 128))
+			    this->dataHandler(this->blockNoExt, this->buffer, 
+			    128))
 			{
 				//end of transfer
 				this->sendChar(XModem::EOT);
@@ -313,6 +320,7 @@ bool XModem::transmitFrames(transfer_t transfer)
 		{
 			case XModem::ACK: //data is ok - go to next chunk
 				this->blockNo++;
+				this->blockNoExt++;
 				continue;
 			case XModem::NACK: //resend data
 				continue;

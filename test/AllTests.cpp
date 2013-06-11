@@ -22,12 +22,12 @@ void sendChar(char sym)
 {
 	mock().actualCall("sendChar").withParameter("sym", sym);
 }
-bool dataHandler(int no, char* data, int size)
+bool dataHandler(unsigned long no, char* data, int size)
 {
 	if (mock().hasData("dataHandler"))
 	{	if(mock().getData("dataHandler").getIntValue() == 1)
 			return (mock().actualCall("dataHandler").
-				withParameter("no", no).
+				withParameter("no", (int)no).
 				withParameter("data", data[0]).
 				withParameter("size", size).
 				returnValue().getIntValue() == 1)?
@@ -35,7 +35,7 @@ bool dataHandler(int no, char* data, int size)
 	
 		if(mock().getData("dataHandler").getIntValue() == 2)
 			return (mock().actualCall("dataHandler").
-				withParameter("no", no).
+				withParameter("no", (int)no).
 				withParameter("size", size).
 				returnValue().getIntValue() == 1)?
 				true:false;						
@@ -44,7 +44,7 @@ bool dataHandler(int no, char* data, int size)
 		{
 			memset((void*)data, mock().getData("dataHandler_data").getIntValue(), 128);	
 			return (mock().actualCall("dataHandler").
-				withParameter("no", no).
+				withParameter("no", (int)no).
 				withParameter("size", size).
 				returnValue().getIntValue() == 1)?
 				true:false;						
